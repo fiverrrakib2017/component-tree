@@ -1,0 +1,320 @@
+<?php 
+include 'include/config.php';
+
+?>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Supplier Invoice</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.1/mdb.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body>
+
+<form id="form-data" action="include/invoice_create.php" enctype="multipart/form-data" method="POST">
+        <div class="row">
+            <div class="col-md-4 p-4">
+                <div class="from-group">
+                    <label for="">Supplier Name</label>
+                    <select name="supplier_name" id="supplier_name" class="form-select">
+                        <option value="">Select</option>
+                        <?php 
+                                    
+                            if ($allSupplier=$con->query("SELECT * FROM supplier")) {
+                                while ($rows=$allSupplier->fetch_array()) {
+                                    echo '<option value="'.$rows['supplier_name'].'">'.$rows['supplier_name'].'</option>';
+                                }
+                            }
+                                
+                        ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <table class="table table-bordered">
+                    <thead class="bg-success text-white">
+                        <th>Product List</th>
+                        <th>Product Unit</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Discount</th>
+                        <th>Total Price</th>
+                        <th>Branch</th>
+                        <th>Upload File</th>
+                        <th><button type="button" id="addRow" class="btn-sm btn btn-primary">+</button></th>
+                    </thead>
+                    <tbody id="tableRow">
+                        <!-- <tr>
+                            <td>
+                                <select type="text" name="product_name[]" class="form-control product_name" value="">
+                                    <option value="">Select</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" min="1" name="qty[]" id="qty" value="1" class="form-control qty" />
+                            </td>
+                            <td>
+                                <input type="number" id="price" name=price[] class="form-control price"
+                                    value="' + jsonData.price + '">
+                            </td>
+                            <td>
+                                <input type="number" name=discount[] id="discount" class="form-control discount"
+                                    value="" />
+                            </td>
+                            <td>
+                                <input type="number" name=total_price[] id="total_price"
+                                    class="form-control total_price" value="" />
+                            </td>
+                            <td>
+                                <input type="number" name=branch_id[] id="branch_id" class="form-control branch_id"
+                                    value="" />
+                            </td>
+                            <td>
+                                <input type="file" name=file[] id="file" class="form-control file" value="" />
+                            </td>
+                            <td>
+                                <a type="button" id="itemRow" class="btn-sm btn btn-danger"><i
+                                        class="fas fa-close"></i></a>
+                            </td>
+                        </tr> -->
+                    </tbody>
+                    <tfoot class="">
+                        <tr>
+                            <th class="text-center" colspan="5"></th>
+                            <th class="text-left" colspan="6">
+                                Total Amount <input class="form-control grand_total" name="total_amount" type="text">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="text-center" colspan="5"></th>
+                            <th class="text-left" colspan="6">
+                                Paid Amount <input class="form-control paid_amount" name="paid_amount" type="text">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="text-center" colspan="5"></th>
+                            <th class="text-left" colspan="6">
+                                Due Amount <input disabled class="form-control due_amount" name="due_amount"
+                                    type="text">
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="form-group text-center">
+                    <button type="submit" id="payment-btn" class="btn btn-success"><i class="fe fe-dollar"></i> Create
+                        Now</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    // Add a new row
+    $("#addRow").click(function() {
+        var newRow = `
+            <tr>
+                <td>
+                    <select name="product_name[]" class="form-select product_name">
+                        <option value="">Select</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="product_unit[]" class="form-select product_unit">
+                        <option value="KG">Kg</option>
+                        <option value="pice">Pice</option>
+                    </select>
+                </td>
+                <td><input type="text" name="qty[]" class="form-control qty" value="1"></td>
+                <td><input type="number" name="price[]" class="form-control price" value=""></td>
+                <td><input type="text" name="discount[]" class="form-control discount" value=""></td>
+                <td><input type="number" name="total_price[]" class="form-control total_price" value=""></td>
+                <td>
+                    <select name="branch_id[]" class="form-select branch_id">
+                        <option value="">Select</option>
+                    </select>
+                </td>
+                <td><input type="file" name="upload_file[]" class="form-control" value=""></td>
+                <td><button type="button" class="btn btn-danger removeRow">Remove</button></td>
+            </tr>
+        `;
+
+        $("#tableRow").append(newRow);
+        // Load product names
+        loadProductNames(); 
+        LoadBranchNames(); 
+    });
+
+    // Remove a row
+    $(document).on('click', '.removeRow', function() {
+        $(this).closest('tr').remove();
+    });
+
+    // Load product names into select boxes
+    function loadProductNames() {
+        $.ajax({
+            url: "include/get_product.php",
+            method: "POST",
+            data: {
+                getProduct: 0,
+            },
+            success: function(response) {
+                var jsonData = JSON.parse(response);
+                $(".product_name").empty();
+                for (var i = 0; i < jsonData.length; i++) {
+                    $(".product_name").append('<option value="' + jsonData[i].product_name + '">' + jsonData[i].product_name + '</option>');
+                }
+            }
+        });
+    }
+
+   //load Branch names into select boxes
+   //declare a array function 
+   const LoadBranchNames=()=>{
+    $.ajax({
+            url: "include/Branch.php",
+            method: "POST",
+            data: {
+                get_branch_data: 0,
+            },
+            success: function(response) {
+                var jsonData = JSON.parse(response);
+                $(".branch_id").empty();
+                for (var i = 0; i < jsonData.length; i++) {
+                    $(".branch_id").append('<option value="' + jsonData[i].branch_name + '">' + jsonData[i].branch_name + '</option>');
+                }
+            }
+        });
+   }
+
+
+
+            $(document).on("change", "input", function() {
+                    var row = $(this).closest("tr");
+                    var qty = Number(row.find(".qty").val());
+                    var price = Number(row.find(".price").val());
+                    var discountInput = row.find(".discount");
+                    var discountValue = discountInput.val();
+                    var total_price = 0;
+
+                    if (discountValue.endsWith("%")) { 
+                        var discountPercentage = parseFloat(discountValue) / 100;
+                        total_price = (qty * price) * (1 - discountPercentage);
+                    } else { 
+                        var discountAmount = parseFloat(discountValue);
+                        total_price = (qty * price) - discountAmount;
+                    }
+                    
+                    row.find(".total_price").val(total_price.toFixed(2)); 
+
+                    getTotalAmount();
+                });
+
+            function getTotalAmount() {
+                var grandTotal = 0;
+                $("table").find("input.total_price").each(function() {
+                    grandTotal += $(this).val() - 0;
+                });
+                $(".grand_total").val(grandTotal);
+            }
+            $(document).on('keyup', '.paid_amount', function() {
+                var paid_amount = $('.paid_amount').val();
+                var grand_total = $('.grand_total').val();
+                var totalDue = Number(grand_total - paid_amount);
+                $(".due_amount").val(totalDue);
+            });
+
+
+
+});
+</script>
+
+</body>
+
+</html>
+
+
+
+
+
+<?php
+//database connection file 
+include 'config.php';
+
+
+
+// echo '<pre>';
+
+// var_dump($_POST);
+
+
+// echo '</pre>';
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $supplier_name = $_POST['supplier_name'];
+    $product_names = $_POST['product_name'];
+    $product_units = $_POST['product_unit'];
+    $qtys = $_POST['qty'];
+    $prices = $_POST['price'];
+    $discounts = $_POST['discount'];
+    $total_prices = $_POST['total_price'];
+    $branch_ids = $_POST['branch_id'];
+    $upload_file = $_FILES['upload_file']['name'];
+
+
+
+    $total_amount = $_POST['total_amount'];
+    $paid_amount = $_POST['paid_amount'];
+    $due_amount = $_POST['due_amount'];
+    
+
+
+   $con->query("INSERT INTO invoice(supplier_name,total_amount,paid_amount,due_amount,date)VALUES('$supplier_name','$total_amount','$paid_amount','$due_amount')");
+   $last_insert_id=$con->insert_id;
+
+    for ($i = 0; $i < count($product_names); $i++) {
+        $product_name = $product_names[$i];
+        $product_unit = $product_units[$i]; 
+        $qty = $qtys[$i]; 
+        $price = $prices[$i];
+        $discount = $discounts[$i];
+        $total_price = $total_prices[$i]; 
+        $branch_id = $branch_ids[$i];
+        $upload_file = $_FILES['upload_file']['name'][$i];
+
+
+        //file upload 
+        $file_name= $_FILES['upload_file']['name'][$i];
+        $file_size= $_FILES['upload_file']['size'][$i];
+
+        $extension=pathinfo($file_name,PATHINFO_EXTENSION);
+        $valid_extension=array("jpg","jped","gif","png");
+        $maxSize=2*1024*1024;
+        if($file_size >$maxSize){
+            echo "File is So Large";
+        }else{
+            if (in_array($extension,$valid_extension)) {
+                $new_name=rand().".".$extension;
+                $path="image/".$new_name;
+                $result=move_uploaded_file($_FILES['upload_file']['tmp_name'][$i],$path);
+                $con->query("INSERT INTO invoice_details(invoice_id,product_id,product_unit,qty,price,discount,total_price,branch_id,invoice_file)VALUES('$last_insert_id','$product_name', '$product_unit','$qty','$price','$discount','$total_price','$branch_id','$path')");
+            }
+        }
+
+    }
+       
+}
+
+
+?>
